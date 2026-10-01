@@ -12,10 +12,11 @@
 <style>
 /* Layout: mobile-first app shell — content column + bottom tab bar (mobile) / sidebar (desktop). Same design language as the Detox landing. */
 :root{
-  --bg:#0B1816; --surface:#11211E; --surface-2:#16302B; --line:rgba(180,214,205,.12);
+  --bg:#061714; --bg2:#0D211D; --surface:#102923; --surface-2:#163A32; --line:rgba(180,214,205,.12);
+  --hl:#35C9A0; --amber-border:#8D7624; --amber-bg:#292719;
   --fg:#EAF3F0; --muted:#92A8A2; --faint:#6A807A;
   --accent:#35D8A4; --accent-deep:#1FB184; --accent-soft:rgba(53,216,164,.12);
-  --amber:#F2B23D; --amber-soft:rgba(242,178,61,.14);
+  --amber:#D7B63D; --amber-soft:rgba(242,178,61,.14);
   --radius-sm:10px; --radius:16px; --radius-lg:24px;
   --shadow:0 1px 2px rgba(0,0,0,.3); --shadow-lg:0 20px 50px -20px rgba(0,0,0,.6);
   --maxw:720px;
@@ -65,7 +66,7 @@ main{flex:1;width:100%;max-width:var(--maxw);margin:0 auto;padding:24px 20px cal
 .tabbar a{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--faint);font-size:10.5px;font-family:var(--font-display);font-weight:600;flex:1;padding:4px}
 .tabbar a svg{width:21px;height:21px}
 .tabbar a.active{color:var(--accent)}
-.tabbar .emg{position:relative;top:-14px;background:linear-gradient(145deg,var(--amber),#d99521);color:#2b1c04;width:54px;height:54px;border-radius:50%;justify-content:center;gap:0;box-shadow:0 10px 24px -8px rgba(242,178,61,.7);flex:none}
+.tabbar .emg{position:relative;top:-14px;background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border);width:54px;height:54px;border-radius:50%;justify-content:center;gap:0;box-shadow:0 8px 20px -10px rgba(0,0,0,.6);flex:none}
 .tabbar .emg svg{width:22px;height:22px}
 .tabbar .emg span{font-size:8px;line-height:1;margin-top:1px}
 
@@ -92,7 +93,7 @@ main{flex:1;width:100%;max-width:var(--maxw);margin:0 auto;padding:24px 20px cal
 .btn-primary{background:linear-gradient(145deg,var(--accent),var(--accent-deep));color:#042019;box-shadow:0 10px 28px -12px rgba(53,216,164,.6)}
 .btn-ghost{background:transparent;color:var(--fg);border-color:var(--line)}
 .btn-ghost:hover{background:var(--surface-2)}
-.btn-amber{background:var(--amber-soft);color:var(--amber);border-color:rgba(242,178,61,.3)}
+.btn-amber{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-border)}
 .btn-full{width:100%}
 .btn svg{width:18px;height:18px;flex:none}
 .btn[disabled]{opacity:.45;cursor:not-allowed}
