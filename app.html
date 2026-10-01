@@ -1,0 +1,904 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Detox do Jogo — App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>
+/* Layout: mobile-first app shell — content column + bottom tab bar (mobile) / sidebar (desktop). Same design language as the Detox landing. */
+:root{
+  --bg:#0B1816; --surface:#11211E; --surface-2:#16302B; --line:rgba(180,214,205,.12);
+  --fg:#EAF3F0; --muted:#92A8A2; --faint:#6A807A;
+  --accent:#35D8A4; --accent-deep:#1FB184; --accent-soft:rgba(53,216,164,.12);
+  --amber:#F2B23D; --amber-soft:rgba(242,178,61,.14);
+  --radius-sm:10px; --radius:16px; --radius-lg:24px;
+  --shadow:0 1px 2px rgba(0,0,0,.3); --shadow-lg:0 20px 50px -20px rgba(0,0,0,.6);
+  --maxw:720px;
+  --font-display:"Sora",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+h1,h2,h3{font-family:var(--font-display);font-weight:700;line-height:1.14;text-wrap:balance;margin:0}
+p{margin:0}
+a{color:inherit;text-decoration:none}
+.tabnum{font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+
+/* shell */
+#app{min-height:100%;display:flex;flex-direction:column}
+.appbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:rgba(11,24,22,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.appbar-in{max-width:var(--maxw);margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:13px 20px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700}
+.brand .dot{width:26px;height:26px;border-radius:8px;background:linear-gradient(145deg,var(--accent),var(--accent-deep));display:grid;place-items:center;flex:none}
+.brand .dot svg{width:15px;height:15px}
+.appbar .dayband{font-size:12.5px;color:var(--muted);font-family:var(--font-display);font-weight:600}
+main{flex:1;width:100%;max-width:var(--maxw);margin:0 auto;padding:24px 20px calc(120px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:18px}
+@media(min-width:900px){
+  #app{flex-direction:row}
+  .sidebar{display:flex!important}
+  .appbar{display:none}
+  main{padding-bottom:40px;max-width:760px}
+  .tabbar{display:none!important}
+}
+
+/* sidebar (desktop) */
+.sidebar{display:none;flex-direction:column;gap:6px;width:240px;flex:none;border-right:1px solid var(--line);padding:24px 16px;position:sticky;top:0;height:100vh}
+.sidebar .brand{padding:6px 10px 18px}
+.sidebar a{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;color:var(--muted);font-family:var(--font-display);font-weight:600;font-size:14.5px;transition:background .15s,color .15s}
+.sidebar a:hover{background:var(--surface);color:var(--fg)}
+.sidebar a.active{background:var(--accent-soft);color:var(--accent)}
+.sidebar a svg{width:19px;height:19px;flex:none}
+.sidebar .emg{margin-top:12px;background:var(--amber-soft);color:var(--amber);border:1px solid rgba(242,178,61,.3)}
+.sidebar .emg:hover{background:rgba(242,178,61,.2);color:var(--amber)}
+
+/* bottom tab bar (mobile) */
+.tabbar{position:fixed;bottom:0;left:0;right:0;z-index:30;background:rgba(11,24,22,.94);backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));display:flex;justify-content:space-around;align-items:flex-end}
+.tabbar a{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--faint);font-size:10.5px;font-family:var(--font-display);font-weight:600;flex:1;padding:4px}
+.tabbar a svg{width:21px;height:21px}
+.tabbar a.active{color:var(--accent)}
+.tabbar .emg{position:relative;top:-14px;background:linear-gradient(145deg,var(--amber),#d99521);color:#2b1c04;width:54px;height:54px;border-radius:50%;justify-content:center;gap:0;box-shadow:0 10px 24px -8px rgba(242,178,61,.7);flex:none}
+.tabbar .emg svg{width:22px;height:22px}
+.tabbar .emg span{font-size:8px;line-height:1;margin-top:1px}
+
+/* cards + bits */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+.card-2{background:var(--surface-2)}
+.eyebrow{font-size:11.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+.muted{color:var(--muted)}
+.faint{color:var(--faint)}
+.h-xl{font-size:clamp(26px,6vw,34px);letter-spacing:-.02em}
+.h-lg{font-size:22px;letter-spacing:-.01em}
+.pbar{height:9px;border-radius:5px;background:var(--surface-2);overflow:hidden}
+.pbar>i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,var(--accent-deep),var(--accent));transition:width .6s ease}
+.row{display:flex;gap:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.money{font-family:var(--font-display);font-weight:800;letter-spacing:-.02em;color:var(--accent)}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat .lab{font-size:12.5px;color:var(--muted)}
+.stat .val{font-family:var(--font-display);font-weight:800;font-size:22px}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;font-family:var(--font-display);font-weight:600;font-size:16px;border-radius:999px;padding:15px 24px;border:1px solid transparent;cursor:pointer;transition:transform .15s,background .2s,box-shadow .2s;line-height:1;text-align:center;width:auto}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:linear-gradient(145deg,var(--accent),var(--accent-deep));color:#042019;box-shadow:0 10px 28px -12px rgba(53,216,164,.6)}
+.btn-ghost{background:transparent;color:var(--fg);border-color:var(--line)}
+.btn-ghost:hover{background:var(--surface-2)}
+.btn-amber{background:var(--amber-soft);color:var(--amber);border-color:rgba(242,178,61,.3)}
+.btn-full{width:100%}
+.btn svg{width:18px;height:18px;flex:none}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+
+/* inputs */
+label.field{display:block;margin-bottom:16px}
+label.field > span{display:block;font-family:var(--font-display);font-weight:600;font-size:15px;margin-bottom:9px}
+.input,textarea.input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px;color:var(--fg);font-family:var(--font-body);font-size:16px;outline:none}
+.input:focus,textarea.input:focus{border-color:var(--accent)}
+textarea.input{min-height:96px;resize:vertical;line-height:1.5}
+.opts{display:grid;gap:9px}
+.opt{display:flex;align-items:center;gap:11px;padding:13px 15px;border-radius:12px;background:var(--bg);border:1px solid var(--line);cursor:pointer;font-size:15px;transition:border-color .15s,background .15s}
+.opt:hover{border-color:rgba(180,214,205,.3)}
+.opt.sel{background:var(--accent-soft);border-color:var(--accent)}
+.opt .box{width:20px;height:20px;border-radius:6px;border:1px solid var(--faint);flex:none;display:grid;place-items:center}
+.opt.sel .box{background:var(--accent);border-color:var(--accent)}
+.opt .box svg{width:12px;height:12px;opacity:0;color:#042019}
+.opt.sel .box svg{opacity:1}
+.opt.radio .box{border-radius:50%}
+
+/* chips */
+.chips{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.chip{font-family:var(--font-display);font-weight:600;font-size:15px;padding:13px 8px;border-radius:12px;background:var(--bg);border:1px solid var(--line);color:var(--fg);cursor:pointer;text-align:center;transition:border-color .15s,background .15s}
+.chip.sel{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+
+/* progress dots / calendar */
+.cal{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.cal b{aspect-ratio:1;border-radius:9px;background:var(--bg);border:1px solid var(--line);display:grid;place-items:center;font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--faint)}
+.cal b.done{background:var(--accent-soft);color:var(--accent);border-color:rgba(53,216,164,.35)}
+.cal b.now{background:var(--accent);color:#042019;border-color:var(--accent)}
+.cal b.relapse{border-color:rgba(242,178,61,.5);color:var(--amber)}
+
+/* achievements */
+.ach{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.ach .a{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:14px 10px;text-align:center;opacity:.5}
+.ach .a.on{opacity:1;border-color:rgba(53,216,164,.35)}
+.ach .a .ic{width:34px;height:34px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;margin:0 auto 8px;color:var(--faint)}
+.ach .a.on .ic{background:var(--accent-soft);color:var(--accent)}
+.ach .a .ic svg{width:17px;height:17px}
+.ach .a b{font-family:var(--font-display);font-size:12.5px;display:block}
+
+/* phase header */
+.phasebar{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-display);font-weight:600;font-size:12px;color:var(--accent);background:var(--accent-soft);padding:6px 12px;border-radius:999px}
+
+/* emergency fullscreen steps */
+.emg-wrap{min-height:100%;display:flex;flex-direction:column}
+.emg-step{display:flex;flex-direction:column;gap:18px;text-align:center;align-items:center;padding:10px 0}
+.breathe{width:120px;height:120px;border-radius:50%;border:2px solid var(--amber);display:grid;place-items:center;color:var(--amber);animation:breathe 7s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(.82);opacity:.7}50%{transform:scale(1.05);opacity:1}}
+.timer{font-family:var(--font-display);font-weight:800;font-size:40px;color:var(--amber)}
+.stepdots{display:flex;gap:7px;justify-content:center}
+.stepdots i{width:8px;height:8px;border-radius:50%;background:var(--surface-2)}
+.stepdots i.on{background:var(--amber)}
+
+/* journal entries */
+.entry{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:15px}
+.entry .meta{font-size:12px;color:var(--faint);font-family:var(--font-display);font-weight:600;margin-bottom:6px;display:flex;justify-content:space-between;gap:10px}
+.entry .tag{color:var(--amber)}
+.entry p{font-size:14px;color:var(--muted)}
+
+/* materials */
+.mat{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.mat .ic{width:42px;height:42px;border-radius:11px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.mat .ic svg{width:21px;height:21px}
+.mat b{font-family:var(--font-display);font-weight:600;font-size:15px;display:block}
+.mat small{color:var(--muted);font-size:12.5px}
+.mat .badge{margin-left:auto;font-size:11px;color:var(--faint);background:var(--bg);border:1px solid var(--line);padding:5px 10px;border-radius:999px;flex:none}
+
+.toast{position:fixed;left:50%;bottom:calc(100px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--surface-2);border:1px solid var(--accent);color:var(--fg);padding:13px 20px;border-radius:999px;font-family:var(--font-display);font-weight:600;font-size:14px;box-shadow:var(--shadow-lg);opacity:0;transition:opacity .25s,transform .25s;z-index:60;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(min-width:900px){.toast{bottom:28px}}
+
+.callout{display:flex;gap:12px;align-items:flex-start;background:var(--amber-soft);border:1px solid rgba(242,178,61,.25);border-radius:14px;padding:15px}
+.callout svg{width:20px;height:20px;color:var(--amber);flex:none;margin-top:2px}
+.callout p{font-size:13.5px;color:var(--fg)}
+.callout b{color:var(--amber)}
+
+.center{text-align:center;align-items:center}
+.stack{display:flex;flex-direction:column;gap:14px}
+.divider{height:1px;background:var(--line);margin:4px 0}
+.back{display:inline-flex;align-items:center;gap:7px;color:var(--muted);font-family:var(--font-display);font-weight:600;font-size:14px;cursor:pointer;background:none;border:0;padding:0}
+.back svg{width:16px;height:16px}
+</style>
+</head>
+<body>
+<div id="app"><!-- rendered by JS --></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   DETOX DO JOGO — App (área logada) — MVP Etapa 2
+   SPA com roteamento por hash + storageService abstraído.
+   Mesma identidade visual da landing. Sem backend ainda.
+   ============================================================ */
+
+/* ---------- CONFIGURAÇÃO CENTRAL ---------- */
+var CONFIG = {
+  price: '27,90',
+  LANDING_URL: '',            // ex.: https://seudominio.com.br
+  APP_URL: '',                // este app — success-url da Cakto = APP_URL + '#welcome'
+  CHECKOUT_URL: '',           // checkout da Cakto (usado pela landing)
+  metaPixelId: '',            // NEXT_PUBLIC_META_PIXEL_ID
+  /* Purchase: separa SINAL client-side de CONFIRMAÇÃO real.
+     false (padrão) = NÃO dispara o evento padrão 'Purchase' do Pixel só porque
+     alguém abriu a tela de boas-vindas (a URL é pública e isso seria falso positivo).
+     A confirmação REAL deve vir de webhook/CAPI da Cakto (ver confirmPurchase). */
+  firePixelPurchaseClientSide: false
+};
+CONFIG.checkoutUrl = CONFIG.CHECKOUT_URL;
+
+/* ===========================================================
+   storageService — ÚNICO ponto de persistência.
+   Troque o corpo de _load/_save por chamadas Supabase depois;
+   a interface (getState/setState/update/journal) não muda.
+   =========================================================== */
+var Store = (function(){
+  var KEY='detox_state_v1';
+  var mem=null;
+  function defaults(){
+    return {
+      profile:null,            // {name, goal, mainTrigger, win, dailyBet}
+      onboarded:false,
+      completedDays:[],        // [1,2,...]
+      dayData:{},              // {1:{reflection, checklist:[], saved:true}}
+      streak:0,                // sequência registrada separadamente da conclusão
+      lastCompletedAt:null,
+      lastCompletedDate:null,  // 'YYYY-M-D' local — controla a cadência diária
+      relapses:[],             // [{at, before, trigger, feeling, different}]
+      journal:[],              // [{at, mood, what, urge, did}]
+      purchased:false,
+      createdAt:new Date().toISOString()
+    };
+  }
+  function _load(){
+    if(mem) return mem;
+    try{ var r=localStorage.getItem(KEY); mem=r?Object.assign(defaults(),JSON.parse(r)):defaults(); }
+    catch(e){ mem=defaults(); }
+    return mem;
+  }
+  function _save(s){ mem=s; try{ localStorage.setItem(KEY, JSON.stringify(s)); }catch(e){} }
+  return {
+    getState:function(){ return _load(); },
+    setState:function(s){ _save(s); },
+    update:function(fn){ var s=_load(); fn(s); _save(s); return s; },
+    reset:function(){ _save(defaults()); }
+  };
+})();
+
+/* ---------- ANALYTICS (privacy-safe) ---------- */
+var Analytics=(function(){
+  function sid(){ try{var k='dj_sid',v=sessionStorage.getItem(k);if(!v){v='sid_'+Math.random().toString(36).slice(2)+Date.now().toString(36);sessionStorage.setItem(k,v);}return v;}catch(e){return 'sid_mem';} }
+  function utm(){ var p;try{p=new URLSearchParams(location.search);}catch(e){p=null;} var g=function(k){return p?(p.get(k)||''):'';}; return {source:g('utm_source'),campaign:g('utm_campaign'),content:g('utm_content')}; }
+  var SID=sid();
+  function event(name,data){
+    var u=utm();
+    var payload={event_name:name,timestamp:new Date().toISOString(),session_id:SID,page:location.pathname+location.hash,source:u.source,campaign:u.campaign,content:u.content,data:data||{}};
+    window.dataLayer=window.dataLayer||[];window.dataLayer.push(payload);
+    if(!CONFIG.metaPixelId){try{console.debug('[analytics]',name,payload);}catch(e){}}
+    return payload;
+  }
+  return {event:event};
+})();
+var Pixel=(function(){
+  var ready=false;
+  function load(id){ if(!id)return;
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    try{window.fbq('init',id);ready=true;}catch(e){}
+  }
+  return {load:load,track:function(n,d){if(ready&&window.fbq){try{window.fbq('track',n,d||{});}catch(e){}}}};
+})();
+/* NUNCA passa conteúdo privado (diário, gatilhos, valores individuais) para cá. */
+function track(name,data){ Pixel.track(name,data); Analytics.event(name,data); }
+
+/* ---------- CONFIRMED PURCHASE (arquitetura, ainda não acionado no client) ----------
+   Ponto ÚNICO para a confirmação REAL de pagamento. Hoje não é chamado no navegador,
+   para evitar falso positivo (qualquer um pode abrir a URL de boas-vindas).
+   Futuro: um webhook server-side da Cakto confirma o pedido e dispara o Purchase
+   padrão via Conversions API. Mantido aqui só para documentar a separação. */
+window.confirmPurchase=function(order){ /* order = {id, value, currency} — ligar via backend/CAPI */ };
+
+/* ---------- util ---------- */
+var BRL=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+function brl(n){return BRL.format(Math.round(n||0));}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function el(html){var d=document.createElement('div');d.innerHTML=html.trim();return d.firstChild;}
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._tm);t._tm=setTimeout(function(){t.classList.remove('show');},2200);}
+var CK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg>';
+function checkSvg(sz){return '<svg viewBox="0 0 24 24" width="'+sz+'" height="'+sz+'" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>';}
+
+/* ---------- 30 DIAS (conteúdo real, conciso: 5-10 min/dia) ---------- */
+var PHASES=[
+  {name:'Consciência',range:'Dias 1–7',from:1,to:7},
+  {name:'Gatilhos',range:'Dias 8–14',from:8,to:14},
+  {name:'Controle',range:'Dias 15–21',from:15,to:21},
+  {name:'Consolidação',range:'Dias 22–30',from:22,to:30}
+];
+function phaseOf(d){for(var i=0;i<PHASES.length;i++){if(d>=PHASES[i].from&&d<=PHASES[i].to)return PHASES[i];}return PHASES[0];}
+var DAYS=[
+ {d:1,t:'Entenda o seu ponto de partida',o:'Enxergar como o seu comportamento de aposta funciona hoje.',w:'Antes de mudar um comportamento, precisamos enxergar como ele funciona. Hoje você só observa, sem se julgar.',m:'Responda, com calma, quanto costuma apostar, com que frequência e em quais situações. Depois defina seu objetivo para os 30 dias.',r:'O que mais te surpreendeu ao olhar para esses números?',c:['Informei meu valor médio','Marquei minhas situações','Defini meu objetivo']},
+ {d:2,t:'Identifique seus gatilhos',o:'Mapear quando a vontade costuma aparecer.',w:'A vontade quase nunca vem do nada. Ela tem hora, lugar e emoção. Reconhecer o gatilho é o primeiro poder sobre ele.',m:'Liste as 3 situações, horários ou emoções que mais puxam você para apostar.',r:'Qual gatilho parece o mais forte hoje?',c:['Listei meus 3 principais gatilhos']},
+ {d:3,t:'Dificulte o acesso',o:'Cortar o piloto automático colocando fricção no caminho.',w:'Quanto mais fácil apostar, mais a decisão acontece no automático. Hoje você aumenta a distância entre o impulso e a ação.',m:'Desinstale apps de aposta, saia de grupos de dicas, ative autoexclusão onde houver e remova cartões salvos.',r:'O que ficou mais difícil de fazer no impulso agora?',c:['Removi um acesso fácil hoje']},
+ {d:4,t:'O protocolo dos 15 minutos',o:'Aprender a adiar o impulso.',w:'A vontade é uma onda: sobe e desce. Se você espera, ela passa — quase sempre em poucos minutos.',m:'Pratique esperar 15 minutos antes de qualquer aposta. Observe a vontade subir e descer sem agir.',r:'O que aconteceu com a vontade enquanto você esperou?',c:['Pratiquei a espera hoje']},
+ {d:5,t:'Substituindo o impulso',o:'Ter um plano B pronto para o momento da vontade.',w:'Tirar um hábito deixa um vazio. Preencher esse vazio com algo pronto facilita dizer não.',m:'Monte sua lista de 5 ações rápidas para fazer no lugar de apostar.',r:'Qual dessas ações é mais fácil de começar quando bate a vontade?',c:['Montei minha lista de substitutos']},
+ {d:6,t:'O ciclo de recuperar a perda',o:'Enxergar a armadilha de correr atrás do prejuízo.',w:'“Preciso recuperar” é o que transforma uma perda em várias. Ver isso no seu próprio histórico quebra o encanto.',m:'Reconstrua no papel uma vez em que tentou recuperar. O que de fato aconteceu depois?',r:'Perseguir a perda já funcionou alguma vez?',c:['Revi um episódio de “recuperar”']},
+ {d:7,t:'Primeira revisão',o:'Consolidar a semana 1.',w:'Uma semana no controle já é uma mudança real. Olhar para trás fixa o aprendizado e mostra o progresso.',m:'Revise seus dias concluídos, o valor preservado e os gatilhos que você mapeou.',r:'Qual foi a sua maior vitória desta semana?',c:['Revi minha primeira semana']},
+ {d:8,t:'Para onde vai o dinheiro agora',o:'Dar um destino ao que não foi apostado.',w:'Dinheiro sem destino volta para o antigo hábito. Dar um propósito a ele torna a mudança concreta.',m:'Abra uma reserva ou meta e separe, simbolicamente, o valor de um dia de aposta.',r:'Por que vale a pena esse dinheiro ficar com você?',c:['Defini um destino para o dinheiro']},
+ {d:9,t:'O gatilho do tédio',o:'Atacar o vazio que puxa para a aposta.',w:'O tédio é um dos maiores gatilhos. Ter o que fazer nos horários mortos muda o jogo.',m:'Escolha duas atividades para os horários em que a vontade costuma aparecer.',r:'Quando o tédio aparece, para onde sua mente vai primeiro?',c:['Escolhi 2 atividades para horários mortos']},
+ {d:10,t:'O gatilho da emoção',o:'Separar emoção de aposta.',w:'Raiva, tristeza e estresse pedem alívio. Apostar vira o atalho. Nomear a emoção já reduz o impulso.',m:'Identifique a emoção por trás da última vontade e escolha uma resposta que não seja apostar.',r:'O que você realmente precisava naquele momento?',c:['Nomeei a emoção por trás da vontade']},
+ {d:11,t:'O mito do “quase ganhei”',o:'Desmontar a quase-vitória.',w:'O “quase” é desenhado para prender. Ele não é sinal de que você ia ganhar — é parte do mecanismo.',m:'Observe como o “quase ganhei” já te fez continuar apostando. Reconheça o padrão.',r:'Quantas vezes o “quase” te fez insistir?',c:['Reconheci o padrão do “quase”']},
+ {d:12,t:'Ambiente digital limpo',o:'Tirar o estímulo do seu bolso.',w:'Notificações, perfis de dicas e grupos mantêm a aposta sempre à vista. Limpar isso reduz a tentação diária.',m:'Desative notificações, pare de seguir perfis de odds/dicas e silencie grupos.',r:'O que no seu celular ainda te chama para apostar?',c:['Limpei meu ambiente digital']},
+ {d:13,t:'Quem sabe do seu desafio',o:'Trazer um aliado.',w:'Dizer em voz alta tira o peso do segredo e cria apoio. Você não precisa fazer isso sozinho.',m:'Conte para uma pessoa de confiança que você está em um desafio de 30 dias.',r:'Como foi dizer isso em voz alta?',c:['Contei para alguém de confiança']},
+ {d:14,t:'Revisão de duas semanas',o:'Marco da metade do caminho.',w:'Metade do caminho é prova de que dá. Reconhecer o quanto mudou reforça a continuidade.',m:'Revise sua sequência, o dinheiro preservado e os gatilhos que já enfraqueceram.',r:'O que mudou em você desde o dia 1?',c:['Revi minhas duas semanas']},
+ {d:15,t:'A ilusão de controle',o:'Largar a crença de “estratégia” e “sistema”.',w:'A sensação de controle é parte da armadilha. Ver as “técnicas” pelo resultado real liberta.',m:'Liste as “técnicas” em que já acreditou e o resultado real de cada uma.',r:'O que te fazia acreditar que dessa vez seria diferente?',c:['Revi minhas “estratégias”']},
+ {d:16,t:'Encarando os números',o:'Olhar o impacto financeiro de frente.',w:'Encarar os números sem julgamento é o ponto de partida para organizar — não uma sentença.',m:'Anote, com calma, o estrago financeiro atual. É de onde você parte.',r:'Qual é o primeiro passo pequeno para organizar isso?',c:['Encarei meus números']},
+ {d:17,t:'O gatilho social',o:'Lidar com quem aposta ao seu redor.',w:'Convites e grupos reacendem a vontade. Ter uma resposta pronta evita a decisão no susto.',m:'Prepare uma resposta pronta para quando te chamarem para apostar.',r:'Quem no seu círculo ajuda e quem atrapalha?',c:['Preparei minha resposta']},
+ {d:18,t:'Reconstruindo o tempo livre',o:'Preencher o espaço que a aposta ocupava.',w:'A aposta tomava tempo e atenção. Reconstruir o tempo livre é ocupar esse espaço com o que te faz bem.',m:'Planeje a próxima semana incluindo algo que você gostava antes de apostar.',r:'O que você deixou de fazer por causa das apostas?',c:['Planejei meu tempo livre']},
+ {d:19,t:'Culpa e vergonha',o:'Aliviar o peso que mantém o ciclo.',w:'Culpa não faz ninguém parar — só faz esconder. Se perdoar é o que abre espaço para seguir.',m:'Escreva uma coisa que você se perdoa hoje.',r:'O que você diria a um amigo na sua situação?',c:['Me perdoei por uma coisa hoje']},
+ {d:20,t:'O dia seguinte sem apostar',o:'Valorizar a calma nova.',w:'Acordar sem a ressaca emocional de ter apostado é uma recompensa concreta. Reparar nela reforça o hábito.',m:'Registre como é acordar sem o peso de ter apostado.',r:'Qual é a melhor parte de não apostar?',c:['Registrei como me sinto sem apostar']},
+ {d:21,t:'Revisão de três semanas',o:'Marco de consolidação.',w:'Três semanas mudam um hábito. O impulso diminuiu e o controle aumentou — olhe para isso.',m:'Revise o quanto a vontade diminuiu e o quanto o controle cresceu.',r:'No que você confia mais em si agora?',c:['Revi minhas três semanas']},
+ {d:22,t:'Quem você está se tornando',o:'Mudar a identidade, não só o comportamento.',w:'Hábitos duram quando viram identidade. Você não está “parando de apostar” — está se tornando outra pessoa.',m:'Complete a frase: “Eu sou alguém que...”.',r:'Como essa pessoa lida com a vontade de apostar?',c:['Escrevi minha frase de identidade']},
+ {d:23,t:'Seus valores vs. as apostas',o:'Alinhar ações com o que importa.',w:'Quando a ação bate com os valores, a mudança para de ser esforço e vira direção.',m:'Liste 3 valores seus e onde a aposta os contrariava.',r:'Qual valor você quer honrar daqui pra frente?',c:['Listei meus valores']},
+ {d:24,t:'Reparando relações',o:'Reconstruir o que a aposta abalou.',w:'A aposta costuma cobrar das relações. Pequenos gestos começam a reconstruir confiança.',m:'Faça um gesto concreto com alguém afetado: uma conversa, um tempo junto.',r:'Que relação você mais quer recuperar?',c:['Fiz um gesto de reaproximação']},
+ {d:25,t:'Plano financeiro de recomeço',o:'Um plano simples e realista.',w:'Um próximo passo claro transforma a vontade de organizar em ação concreta.',m:'Defina um próximo passo financeiro para os próximos 30 dias.',r:'O que te deixaria orgulhoso daqui a um mês?',c:['Defini meu próximo passo financeiro']},
+ {d:26,t:'Seu mapa de risco',o:'Conhecer seus sinais de alerta.',w:'A recaída costuma avisar antes. Conhecer os sinais é poder agir cedo.',m:'Liste os sinais pessoais de que a recaída pode estar se aproximando.',r:'Qual sinal costuma aparecer primeiro?',c:['Listei meus sinais de alerta']},
+ {d:27,t:'Plano de prevenção de recaída',o:'Saber o que fazer antes de acontecer.',w:'“Se X acontecer, eu faço Y.” Um plano pronto decide por você no momento difícil.',m:'Monte o plano “se... então...” para seus 3 maiores riscos.',r:'Quem você aciona se precisar de ajuda?',c:['Montei meu plano se-então']},
+ {d:28,t:'Seu kit de emergência',o:'Ter tudo à mão no momento difícil.',w:'No pico da vontade não dá para pensar muito. Um kit pronto faz o trabalho por você.',m:'Reúna contatos, ações substitutas e seus motivos num só lugar.',r:'O que te acalma de verdade?',c:['Montei meu kit de emergência']},
+ {d:29,t:'Carta para o seu eu em dificuldade',o:'Deixar uma âncora para os dias ruins.',w:'A sua voz de hoje, calma, pode ajudar a sua voz de amanhã, em dificuldade.',m:'Escreva uma carta curta para você mesmo num momento de vontade forte.',r:'O que o seu eu de hoje quer lembrar ao seu eu de amanhã?',c:['Escrevi minha carta']},
+ {d:30,t:'Revisão final e próximos 30',o:'Fechar o ciclo e seguir.',w:'Você provou para si mesmo que dá. Agora é escolher como manter — e, se precisar, buscar mais apoio.',m:'Revise os 30 dias, o total preservado e escolha seu próximo ciclo de manutenção.',r:'Do que você mais se orgulha?',c:['Revi meus 30 dias']}
+];
+function dayByNum(n){for(var i=0;i<DAYS.length;i++){if(DAYS[i].d===n)return DAYS[i];}return null;}
+
+/* ---------- derivações de estado ---------- */
+function currentDay(s){ for(var d=1;d<=30;d++){ if(s.completedDays.indexOf(d)<0) return d; } return 31; }
+function todayStr(){ var d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+function todayDone(s){ return s.completedDays.length>0 && s.lastCompletedDate===todayStr(); }
+function moneyNotBet(s){ var bet=(s.profile&&s.profile.dailyBet)?s.profile.dailyBet:0; return bet*s.completedDays.length; }
+function progressPct(s){ return Math.round((s.completedDays.length/30)*100); }
+function isComplete(s){ return s.completedDays.length>=30; }
+
+/* ===========================================================
+   VIEWS
+   =========================================================== */
+var App=document.getElementById('app');
+
+function go(route){ location.hash=route; }
+function navItemsActive(route){
+  // map detail routes to a tab
+  if(route.indexOf('day')===0||route==='challenge') return 'desafio';
+  if(route==='progress') return 'progresso';
+  if(route==='materials') return 'materiais';
+  if(route==='emergency') return 'emergency';
+  return 'home';
+}
+
+function shell(inner, route){
+  var s=Store.getState();
+  var cd=currentDay(s);
+  var band = isComplete(s) ? 'Desafio concluído' : ('Dia '+Math.min(cd,30)+' de 30');
+  var active=navItemsActive(route);
+  function tab(r,label,icon){ return '<a href="#'+r.route+'" class="'+(active===r.key?'active':'')+'">'+icon+'<span>'+label+'</span></a>'; }
+  var ICON={
+    home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>',
+    desafio:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+    prog:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>',
+    mat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>',
+    emg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 0 0-7 7c0 3 2 5 2 8h10c0-3 2-5 2-8a7 7 0 0 0-7-7ZM9 21h6"/></svg>'
+  };
+  var sidebar=
+    '<nav class="sidebar">'+
+      '<div class="brand"><span class="dot">'+CK+'</span>Detox</div>'+
+      '<a href="#home" class="'+(active==='home'?'active':'')+'">'+ICON.home+'Início</a>'+
+      '<a href="#day-'+Math.min(cd,30)+'" class="'+(active==='desafio'?'active':'')+'">'+ICON.desafio+'Desafio</a>'+
+      '<a href="#progress" class="'+(active==='progresso'?'active':'')+'">'+ICON.prog+'Progresso</a>'+
+      '<a href="#materials" class="'+(active==='materiais'?'active':'')+'">'+ICON.mat+'Materiais</a>'+
+      '<a href="#emergency" class="emg">'+ICON.emg+'Estou com vontade</a>'+
+    '</nav>';
+  var tabbar=
+    '<nav class="tabbar">'+
+      '<a href="#home" class="'+(active==='home'?'active':'')+'">'+ICON.home+'<span>Início</span></a>'+
+      '<a href="#day-'+Math.min(cd,30)+'" class="'+(active==='desafio'?'active':'')+'">'+ICON.desafio+'<span>Desafio</span></a>'+
+      '<a href="#emergency" class="emg">'+ICON.emg+'<span>Vontade</span></a>'+
+      '<a href="#progress" class="'+(active==='progresso'?'active':'')+'">'+ICON.prog+'<span>Progresso</span></a>'+
+      '<a href="#materials" class="'+(active==='materiais'?'active':'')+'">'+ICON.mat+'<span>Materiais</span></a>'+
+    '</nav>';
+  var appbar='<header class="appbar"><div class="appbar-in"><div class="brand"><span class="dot">'+CK+'</span>Detox do Jogo</div><span class="dayband">'+band+'</span></div></header>';
+  App.innerHTML = sidebar + '<div style="flex:1;min-width:0;display:flex;flex-direction:column">'+appbar+'<main>'+inner+'</main></div>' + tabbar;
+}
+
+/* ---------- WELCOME (pós-compra) ---------- */
+function viewWelcome(){
+  var s0=Store.getState();
+  if(s0.onboarded){ go('home'); return; }
+  if(!s0.purchased){
+    // CLIENT-SIDE: o usuário chegou à tela pós-compra. NÃO é confirmação de pagamento.
+    Analytics.event('PurchaseClientSide',{value:parseFloat(CONFIG.price.replace(',','.')),currency:'BRL'});
+    // Pixel 'Purchase' client-side só se explicitamente habilitado (enquanto não há webhook).
+    if(CONFIG.firePixelPurchaseClientSide){ Pixel.track('Purchase',{value:parseFloat(CONFIG.price.replace(',','.')),currency:'BRL'}); }
+  }
+  Store.update(function(s){ s.purchased=true; });
+  App.innerHTML=
+   '<main style="max-width:560px;margin:0 auto;padding:40px 20px;min-height:100%;display:flex;flex-direction:column;justify-content:center;gap:22px" class="center">'+
+    '<div style="width:72px;height:72px;border-radius:50%;background:var(--accent-soft);border:1px solid rgba(53,216,164,.3);display:grid;place-items:center;margin:0 auto;color:var(--accent)"><svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg></div>'+
+    '<div class="eyebrow" style="margin:0">Seu Detox começa agora</div>'+
+    '<h1 class="h-xl">Bem-vindo ao Detox do Jogo.</h1>'+
+    '<p class="muted" style="max-width:42ch;margin:0 auto">Você acabou de dar o primeiro passo — e o mais difícil, que é começar, já ficou para trás.</p>'+
+    '<div class="card" style="text-align:left"><div class="stack" style="gap:10px">'+
+      '<div style="display:flex;gap:10px;align-items:center;font-size:15px"><span style="color:var(--accent);flex:none">'+checkSvg(18)+'</span>Compra concluída</div>'+
+      '<div style="display:flex;gap:10px;align-items:center;font-size:15px"><span style="color:var(--accent);flex:none">'+checkSvg(18)+'</span>Acesso imediato, aqui no celular</div>'+
+      '<div style="display:flex;gap:10px;align-items:center;font-size:15px"><span style="color:var(--accent);flex:none">'+checkSvg(18)+'</span>Próximo passo: 4 perguntas rápidas para personalizar</div>'+
+    '</div></div>'+
+    '<button class="btn btn-primary btn-full" id="toOnb">Começar meu Detox</button>'+
+    '<p class="faint" style="font-size:12.5px">Leva menos de 2 minutos. Nada aqui é diagnóstico.</p>'+
+   '</main>';
+  document.getElementById('toOnb').onclick=function(){ go('onboarding'); };
+}
+
+/* ---------- ONBOARDING ---------- */
+var ONB_Q=[
+  {k:'freq',q:'Com que frequência você costuma apostar?',type:'radio',opts:['Todo dia','Quase todo dia','Algumas vezes por semana','De vez em quando']},
+  {k:'mainTrigger',q:'Qual situação mais desperta vontade de apostar?',type:'radio',opts:['Quando estou entediado','Depois de uma perda','Sozinho à noite','Sob estresse ou briga','Dia de pagamento','Vendo jogo ou esporte']},
+  {k:'goal',q:'O que você mais quer recuperar neste momento?',type:'radio',opts:['Meu dinheiro','Meu tempo','Minha tranquilidade','Minha rotina','Minha relação com a família']},
+  {k:'win',q:'Qual seria uma pequena vitória nos próximos 30 dias?',type:'text',placeholder:'Ex.: passar um fim de semana inteiro sem apostar'}
+];
+var onbState={i:0,answers:{},name:''};
+function viewOnboarding(){
+  if(!Store.getState().onboardingStarted){ Store.update(function(s){s.onboardingStarted=true;}); track('OnboardingStarted'); }
+  renderOnbStep();
+}
+function renderOnbStep(){
+  var total=ONB_Q.length+1; // +1 nome
+  var step=onbState.i;
+  var inner;
+  if(step===0){
+    inner='<label class="field"><span>Como podemos te chamar?</span><input class="input" id="onbName" value="'+esc(onbState.name)+'" placeholder="Seu primeiro nome" /></label>';
+  } else {
+    var q=ONB_Q[step-1];
+    if(q.type==='radio'){
+      var cur=onbState.answers[q.k];
+      inner='<div style="font-family:var(--font-display);font-weight:600;font-size:18px;margin-bottom:16px">'+esc(q.q)+'</div><div class="opts">'+
+        q.opts.map(function(o){return '<button class="opt radio '+(cur===o?'sel':'')+'" data-o="'+esc(o)+'"><span class="box">'+CK+'</span>'+esc(o)+'</button>';}).join('')+'</div>';
+    } else {
+      inner='<label class="field"><span>'+esc(q.q)+'</span><textarea class="input" id="onbText" placeholder="'+esc(q.placeholder||'')+'">'+esc(onbState.answers[q.k]||'')+'</textarea></label>';
+    }
+  }
+  var pct=Math.round((step/total)*100);
+  App.innerHTML='<main style="max-width:540px;margin:0 auto;padding:28px 20px;min-height:100%;display:flex;flex-direction:column;gap:22px">'+
+    '<div class="pbar" style="margin-top:6px"><i style="width:'+pct+'%"></i></div>'+
+    '<div class="faint" style="font-size:12.5px;font-family:var(--font-display);font-weight:600">Passo '+(step+1)+' de '+total+'</div>'+
+    '<div class="card" style="background:transparent;border:0;padding:0">'+inner+'</div>'+
+    '<div class="row" style="margin-top:auto">'+
+      (step>0?'<button class="btn btn-ghost" id="onbBack">Voltar</button>':'')+
+      '<button class="btn btn-primary" id="onbNext" style="flex:1">'+(step===total-1?'Concluir':'Continuar')+'</button>'+
+    '</div></main>';
+  var nextBtn=document.getElementById('onbNext');
+  function save(){
+    if(step===0){ var n=document.getElementById('onbName'); onbState.name=n?n.value.trim():''; }
+    else{ var q=ONB_Q[step-1]; if(q.type==='text'){ var t=document.getElementById('onbText'); onbState.answers[q.k]=t?t.value.trim():''; } }
+  }
+  if(step>0){ document.getElementById('onbBack').onclick=function(){ save(); onbState.i--; renderOnbStep(); }; }
+  // radio clicks
+  App.querySelectorAll('.opt').forEach(function(b){ b.onclick=function(){ var q=ONB_Q[step-1]; onbState.answers[q.k]=b.getAttribute('data-o'); renderOnbStep(); }; });
+  nextBtn.onclick=function(){
+    save();
+    if(step===0 && !onbState.name){ toast('Como podemos te chamar?'); return; }
+    if(step>0){ var q=ONB_Q[step-1]; if(!onbState.answers[q.k]){ toast('Escolha uma opção para continuar'); return; } }
+    if(step<total-1){ onbState.i++; renderOnbStep(); }
+    else{
+      Store.update(function(s){
+        s.onboarded=true;
+        s.profile=Object.assign({},s.profile,{name:onbState.name,goal:onbState.answers.goal,mainTrigger:onbState.answers.mainTrigger,freq:onbState.answers.freq,win:onbState.answers.win});
+      });
+      track('OnboardingCompleted'); // sem conteúdo sensível, só o evento
+      go('home');
+    }
+  };
+}
+
+/* ---------- HOME / DASHBOARD ---------- */
+function viewHome(route){
+  var s=Store.getState();
+  var cd=currentDay(s);
+  var done=s.completedDays.length;
+  var pct=progressPct(s);
+  var today=dayByNum(Math.min(cd,30));
+  var name=(s.profile&&s.profile.name)?s.profile.name:'';
+  var greeting=name?('Olá, '+esc(name)+'.'):'Olá.';
+  var inner;
+  if(isComplete(s)){
+    inner=
+     '<div class="card center stack"><div class="eyebrow" style="margin:0">Desafio concluído</div>'+
+     '<h1 class="h-xl">Você completou os 30 dias.</h1>'+
+     '<p class="muted">Você preservou cerca de <b class="money" style="font-size:inherit">'+brl(moneyNotBet(s))+'</b> e provou para si mesmo que é possível, um dia de cada vez.</p>'+
+     '<a class="btn btn-primary btn-full" href="#progress">Ver meu progresso</a>'+
+     '<div class="callout" style="margin-top:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 0 0-7 7c0 3 2 5 2 8h10c0-3 2-5 2-8a7 7 0 0 0-7-7ZM9 21h6"/></svg><p>Se quiser continuar com apoio, buscar ajuda profissional é um bom próximo passo. <b>CVV 188</b>, Jogadores Anônimos e os CAPS oferecem apoio gratuito.</p></div></div>';
+  } else {
+    var done2=todayDone(s);
+    var todayBlock = (!done2)
+      ? '<div class="card card-2"><div class="eyebrow" style="margin-bottom:8px">Missão de hoje</div><h2 class="h-lg" style="font-size:19px">'+esc(today.t)+'</h2><p class="muted" style="font-size:14.5px;margin:8px 0 16px">'+esc(today.o)+'</p><a class="btn btn-primary btn-full" href="#day-'+cd+'">Começar missão</a></div>'
+      : '<div class="card card-2 center"><div style="width:48px;height:48px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;margin:0 auto 10px">'+checkSvg(24)+'</div><div class="eyebrow" style="margin:0 0 6px">Missão de hoje concluída</div><p class="muted" style="font-size:14.5px">Volte amanhã para o Dia '+cd+'. Amanhã: <b style="color:var(--fg)">'+esc((dayByNum(Math.min(cd,30))||{}).t||'')+'</b></p></div>';
+    inner=
+     '<div class="stack">'+
+      '<div><div class="eyebrow" style="margin-bottom:6px">'+greeting+'</div><h1 class="h-lg">Dia '+cd+' de 30</h1></div>'+
+      '<div class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px"><span class="muted" style="font-size:13px">Progresso do desafio</span><span style="font-family:var(--font-display);font-weight:700;color:var(--accent)">'+pct+'%</span></div><div class="pbar"><i style="width:'+pct+'%"></i></div></div>'+
+      '<div class="grid2">'+
+        '<div class="card stat"><span class="lab">Sequência</span><span class="val">'+s.streak+(s.streak===1?' dia':' dias')+'</span></div>'+
+        '<div class="card stat"><span class="lab">Não apostado</span><span class="val money">'+brl(moneyNotBet(s))+'</span></div>'+
+      '</div>'+
+      todayBlock+
+      '<a class="btn btn-amber btn-full" href="#emergency"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 0 0-7 7c0 3 2 5 2 8h10c0-3 2-5 2-8a7 7 0 0 0-7-7ZM9 21h6"/></svg>Estou com vontade de apostar</a>'+
+      '<div class="divider"></div>'+
+      '<div class="grid2">'+
+        quickLink('progress','Meu progresso','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>')+
+        quickLink('journal','Meu diário','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>')+
+        quickLink('triggers','Meus gatilhos','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>')+
+        quickLink('materials','Kit Detox','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>')+
+      '</div>'+
+     '</div>';
+  }
+  shell(inner,route);
+}
+function quickLink(r,label,icon){return '<a href="#'+r+'" class="card" style="display:flex;align-items:center;gap:12px;color:var(--fg)"><span style="width:36px;height:36px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none">'+icon+'</span><b style="font-family:var(--font-display);font-weight:600;font-size:14.5px">'+label+'</b></a>';}
+
+/* ---------- DAY VIEW ---------- */
+function viewDay(route){
+  var n=parseInt(route.split('-')[1],10);
+  var s=Store.getState();
+  if(!n||n<1||n>30){ go('home'); return; }
+  var cd=currentDay(s);
+  // portão de cadência diária: concluiu hoje → o próximo passo abre amanhã
+  if(n===cd && todayDone(s) && s.completedDays.indexOf(n)<0){ shell(tomorrowScreen(n),route); return; }
+  // future day lock
+  if(n>cd && s.completedDays.indexOf(n)<0){
+    shell('<button class="back" onclick="history.length>1?history.back():go(\'home\')">'+arrow()+'Voltar</button>'+
+      '<div class="card center stack" style="margin-top:14px"><div style="width:52px;height:52px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;margin:0 auto;color:var(--faint)"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div><h2 class="h-lg">Dia '+n+' ainda está fechado</h2><p class="muted">Um passo de cada vez. Conclua o dia '+cd+' para abrir o próximo.</p><a class="btn btn-primary" href="#day-'+cd+'">Ir para o dia de hoje</a></div>',route);
+    return;
+  }
+  var day=dayByNum(n);
+  var ph=phaseOf(n);
+  var completed=s.completedDays.indexOf(n)>=0;
+  var saved=(s.dayData[n]&&s.dayData[n].reflection)||'';
+  var checks=(s.dayData[n]&&s.dayData[n].checklist)||[];
+  track('DayStarted',{day:n});
+
+  var special = (n===1) ? daySpecial1(s) : '';
+  var checklistHtml = day.c&&day.c.length ? '<div class="card"><div class="eyebrow">Checklist</div><div class="opts" id="dayChecks">'+
+      day.c.map(function(c,i){var on=checks.indexOf(i)>=0;return '<button class="opt '+(on?'sel':'')+'" data-ci="'+i+'"><span class="box">'+CK+'</span>'+esc(c)+'</button>';}).join('')+'</div></div>' : '';
+
+  var inner=
+    '<button class="back" id="dayBack">'+arrow()+'Voltar</button>'+
+    '<div style="margin-top:12px"><span class="phasebar">Fase '+(PHASES.indexOf(ph)+1)+' · '+ph.name+'</span></div>'+
+    '<div><div class="eyebrow" style="margin:14px 0 4px">Dia '+n+'</div><h1 class="h-xl">'+esc(day.t)+'</h1></div>'+
+    '<div class="card"><div class="eyebrow">Objetivo</div><p>'+esc(day.o)+'</p></div>'+
+    '<div class="card card-2"><div class="eyebrow">Por que isso importa</div><p class="muted" style="font-size:14.5px">'+esc(day.w)+'</p></div>'+
+    special+
+    '<div class="card"><div class="eyebrow">Missão</div><p>'+esc(day.m)+'</p></div>'+
+    checklistHtml+
+    '<div class="card"><div class="eyebrow">Reflexão</div><p class="muted" style="font-size:14.5px;margin-bottom:12px">'+esc(day.r)+'</p><textarea class="input" id="dayRefl" placeholder="Escreva aqui (fica só com você)">'+esc(saved)+'</textarea></div>'+
+    '<div class="row"><button class="btn btn-ghost" id="daySave">Salvar</button><button class="btn btn-primary" id="dayDone" style="flex:1">'+(completed?'Dia concluído ✓':'Concluir dia')+'</button></div>'+
+    (completed?'':'<p class="faint center" style="font-size:12.5px">Concluir atualiza seu progresso e sua sequência.</p>');
+  shell(inner,route);
+
+  document.getElementById('dayBack').onclick=function(){ go('home'); };
+  var checkState=checks.slice();
+  App.querySelectorAll('#dayChecks .opt').forEach(function(b){
+    b.onclick=function(){ var i=parseInt(b.getAttribute('data-ci'),10); var at=checkState.indexOf(i); if(at>=0){checkState.splice(at,1);b.classList.remove('sel');}else{checkState.push(i);b.classList.add('sel');} };
+  });
+  function persist(){ var refl=document.getElementById('dayRefl').value; Store.update(function(st){ st.dayData[n]=Object.assign({},st.dayData[n],{reflection:refl,checklist:checkState}); }); }
+  document.getElementById('daySave').onclick=function(){ persist(); toast('Salvo'); };
+  document.getElementById('dayDone').onclick=function(){
+    persist();
+    if(n===1 && !saveDay1Profile()) return;
+    var already=Store.getState().completedDays.indexOf(n)>=0;
+    if(!already){
+      Store.update(function(st){
+        st.completedDays.push(n); st.completedDays.sort(function(a,b){return a-b;});
+        st.streak=st.streak+1; st.lastCompletedAt=new Date().toISOString(); st.lastCompletedDate=todayStr();
+      });
+      track('DayCompleted',{day:n});
+      if(Store.getState().completedDays.length>=30){ track('ChallengeCompleted'); }
+    }
+    dayDoneScreen(n);
+  };
+}
+function arrow(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>';}
+
+/* Dia 1 — bloco especial de ponto de partida */
+function daySpecial1(s){
+  var p=s.profile||{};
+  var sits=['Tédio','Depois de perder','Sozinho à noite','Estresse','Dia de pagamento','Vendo jogo','Bebendo'];
+  var selSit=(p.situations||[]);
+  return '<div class="card" id="d1">'+
+    '<div class="eyebrow">Seu ponto de partida</div>'+
+    '<p class="muted" style="font-size:14px;margin-bottom:16px">Antes de mudar um comportamento, precisamos enxergar como ele funciona. Nada aqui é diagnóstico — só serve para personalizar o seu desafio.</p>'+
+    '<label class="field"><span>Quanto você costuma apostar, em média, por dia?</span>'+
+      '<div class="chips" id="d1bet">'+[20,50,100,200,500,1000].map(function(v){return '<button class="chip '+(p.dailyBet===v?'sel':'')+'" data-v="'+v+'">R$ '+v+'</button>';}).join('')+'</div>'+
+      '<div style="display:flex;align-items:center;gap:10px;margin-top:10px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:2px 14px"><span class="muted" style="font-family:var(--font-display);font-weight:600">R$</span><input class="input" id="d1betCustom" inputmode="numeric" placeholder="Outro valor" style="border:0;background:transparent;padding:12px 0" value="'+(p.dailyBet&&[20,50,100,200,500,1000].indexOf(p.dailyBet)<0?p.dailyBet:'')+'"/></div>'+
+      '<p class="faint" style="font-size:12px;margin-top:8px">Esse valor é privado e fica só com você. Ele alimenta a sua estimativa de dinheiro não apostado.</p>'+
+    '</label>'+
+    '<label class="field"><span>Em quais situações a vontade mais aparece?</span><div class="opts" id="d1sit">'+
+      sits.map(function(o){return '<button class="opt '+(selSit.indexOf(o)>=0?'sel':'')+'" data-o="'+esc(o)+'"><span class="box">'+CK+'</span>'+esc(o)+'</button>';}).join('')+
+    '</div></label>'+
+    '<label class="field" style="margin-bottom:0"><span>Seu objetivo para os próximos 30 dias</span><input class="input" id="d1goal" placeholder="Ex.: 30 dias sem apostar" value="'+esc(p.goal30||'')+'"/></label>'+
+  '</div>';
+}
+function saveDay1Profile(){
+  var betSel=App.querySelector('#d1bet .chip.sel');
+  var betCustom=document.getElementById('d1betCustom');
+  var bet=betSel?parseFloat(betSel.getAttribute('data-v')):(betCustom&&betCustom.value?parseFloat(betCustom.value.replace(/[^\d]/g,'')):0);
+  var sits=[];App.querySelectorAll('#d1sit .opt.sel').forEach(function(b){sits.push(b.getAttribute('data-o'));});
+  var goal30=(document.getElementById('d1goal')||{}).value||'';
+  if(!bet){ toast('Informe quanto costuma apostar'); return false; }
+  Store.update(function(s){ s.profile=Object.assign({},s.profile,{dailyBet:bet,situations:sits,goal30:goal30.trim()}); });
+  return true;
+}
+function bindDay1(){
+  var betWrap=document.getElementById('d1bet'); if(!betWrap) return;
+  betWrap.querySelectorAll('.chip').forEach(function(c){c.onclick=function(){betWrap.querySelectorAll('.chip').forEach(function(x){x.classList.remove('sel');});c.classList.add('sel');var cu=document.getElementById('d1betCustom');if(cu)cu.value='';};});
+  var cu=document.getElementById('d1betCustom'); if(cu)cu.oninput=function(){betWrap.querySelectorAll('.chip').forEach(function(x){x.classList.remove('sel');});};
+  App.querySelectorAll('#d1sit .opt').forEach(function(b){b.onclick=function(){b.classList.toggle('sel');};});
+}
+
+function tomorrowScreen(n){
+  var s=Store.getState(); var day=dayByNum(n)||{};
+  return '<div class="card center stack" style="margin-top:20px">'+
+    '<div style="width:60px;height:60px;border-radius:50%;background:var(--accent-soft);border:1px solid rgba(53,216,164,.3);display:grid;place-items:center;margin:0 auto;color:var(--accent)">'+checkSvg(28)+'</div>'+
+    '<div class="eyebrow" style="margin:0">Missão de hoje concluída</div>'+
+    '<h1 class="h-xl">Você já cuidou de hoje.</h1>'+
+    '<p class="muted">Um passo por dia é o que faz isso funcionar. Volte amanhã para continuar — sem pressa.</p>'+
+    '<div class="card card-2" style="width:100%;text-align:left"><div class="eyebrow" style="margin-bottom:6px">Amanhã · Dia '+n+'</div><b style="font-family:var(--font-display);font-weight:600">'+esc(day.t||'')+'</b></div>'+
+    '<div class="pbar" style="width:100%"><i style="width:'+progressPct(s)+'%"></i></div>'+
+    '<p class="muted">'+progressPct(s)+'% concluído · '+brl(moneyNotBet(s))+' preservados</p>'+
+    '<a class="btn btn-primary btn-full" href="#home">Voltar ao início</a>'+
+    '<a class="btn btn-ghost btn-full" href="#journal">Escrever no meu diário</a>'+
+  '</div>';
+}
+function dayDoneScreen(n){
+  var s=Store.getState();
+  var complete=isComplete(s);
+  var isWeek1=(n===7);
+  var header = isWeek1
+    ? '<div class="eyebrow" style="margin:0">Primeira semana concluída</div><h1 class="h-xl">Você chegou ao fim da semana 1.</h1>'
+    : '<div class="eyebrow" style="margin:0">✓ Dia '+n+' concluído</div><h1 class="h-xl">'+(n===1?'Você deu o primeiro passo.':'Dia '+n+' concluído.')+'</h1>';
+  var stats='<div class="grid2" style="width:100%">'+
+     '<div class="card card-2 stat"><span class="lab">Sequência</span><span class="val">'+s.streak+(s.streak===1?' dia':' dias')+'</span></div>'+
+     '<div class="card card-2 stat"><span class="lab">Não apostado</span><span class="val money">'+brl(moneyNotBet(s))+'</span></div>'+
+   '</div>';
+  function wline(txt){return '<div style="display:flex;gap:10px;align-items:center;font-size:14px"><span style="color:var(--accent);flex:none">'+checkSvg(16)+'</span>'+txt+'</div>';}
+  var week1=isWeek1
+    ? '<div class="card" style="width:100%;text-align:left"><div class="eyebrow">O que você construiu nesta semana</div><div class="stack" style="gap:8px">'+
+        wline(s.completedDays.length+' dias concluídos')+
+        wline(brl(moneyNotBet(s))+' que permaneceram com você')+
+        wline('Seus principais gatilhos mapeados')+
+      '</div></div>'
+    : '';
+  var tomorrow = complete ? '' :
+    '<div class="card card-2" style="width:100%;text-align:left"><div class="eyebrow" style="margin-bottom:6px">Dia '+(n+1)+'</div><b style="font-family:var(--font-display);font-weight:600">'+esc((dayByNum(n+1)||{}).t||'')+'</b><p class="muted" style="font-size:13px;margin-top:6px">Seu próximo passo estará disponível amanhã.</p></div>';
+  var inner=
+   '<div class="card center stack" style="margin-top:20px">'+
+    '<div style="width:64px;height:64px;border-radius:50%;background:var(--accent-soft);border:1px solid rgba(53,216,164,.3);display:grid;place-items:center;margin:0 auto;color:var(--accent)">'+checkSvg(30)+'</div>'+
+    header+
+    stats+
+    '<div class="pbar" style="width:100%"><i style="width:'+progressPct(s)+'%"></i></div>'+
+    '<p class="muted">'+progressPct(s)+'% do desafio concluído.</p>'+
+    week1+
+    tomorrow+
+    '<a class="btn btn-primary btn-full" href="#home">'+(complete?'Ver conclusão':'Voltar ao início')+'</a>'+
+   '</div>';
+  shell(inner,'day');
+}
+
+/* ---------- EMERGENCY PROTOCOL ---------- */
+var emg={i:0,trigger:'',timer:null,left:120};
+var EMG_STEPS=[
+  {k:'PAUSE',t:'Pause',d:'Respire. A vontade é uma onda — ela sobe e desce. Vamos esperar 2 minutos juntos.'},
+  {k:'IDENTIFIQUE',t:'Identifique',d:'O que disparou a vontade agora? Nomear o gatilho já tira parte da força dele.'},
+  {k:'ADIE',t:'Adie',d:'Você não precisa decidir para sempre. Só adiar. Que tal revisitar isso daqui a 1 hora?'},
+  {k:'MUDE O CONTEXTO',t:'Mude o contexto',d:'Saia do lugar, mude de ambiente, faça uma das suas ações alternativas. Troque o cenário.'},
+  {k:'REGISTRE',t:'Registre',d:'Guardar o que aconteceu transforma este momento em aprendizado para o próximo.'}
+];
+var EMG_TRIGGERS=['Tédio','Perda','Estresse','Pagamento','Sozinho','Bebida','Vendo jogo'];
+function viewEmergency(){
+  emg={i:0,trigger:'',timer:null,left:120};
+  track('EmergencyProtocolStarted');
+  renderEmgIntro();
+}
+function emgClose(){ if(emg.timer){clearInterval(emg.timer);emg.timer=null;} go('home'); }
+function renderEmgIntro(){
+  App.innerHTML='<main style="max-width:520px;margin:0 auto;padding:30px 20px;min-height:100%;display:flex;flex-direction:column;gap:22px">'+
+   '<button class="back" id="emgX">'+arrow()+'Fechar</button>'+
+   '<div class="emg-step" style="margin-top:20px"><div class="breathe"><svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2a7 7 0 0 0-7 7c0 3 2 5 2 8h10c0-3 2-5 2-8a7 7 0 0 0-7-7Z"/><path d="M9 21h6"/></svg></div>'+
+   '<h1 class="h-xl">Vamos passar pelos próximos minutos juntos.</h1>'+
+   '<p class="muted">Cinco passos curtos. Sem pressa, sem julgamento. Você está no controle.</p>'+
+   '<button class="btn btn-amber btn-full" id="emgStart">Começar</button></div></main>';
+  document.getElementById('emgX').onclick=emgClose;
+  document.getElementById('emgStart').onclick=function(){ emg.i=0; renderEmgStep(); };
+}
+function renderEmgStep(){
+  var st=EMG_STEPS[emg.i];
+  var body='';
+  if(emg.i===0){
+    body='<div class="breathe"><span class="timer" id="emgTimer">2:00</span></div><p class="muted">Inspire... segure... solte. Deixe a onda passar.</p>';
+  } else if(emg.i===1){
+    body='<div class="chips" style="grid-template-columns:repeat(2,1fr);width:100%">'+EMG_TRIGGERS.map(function(t){return '<button class="chip '+(emg.trigger===t?'sel':'')+'" data-t="'+esc(t)+'">'+esc(t)+'</button>';}).join('')+'</div>';
+  } else if(emg.i===2){
+    body='<div class="timer" style="color:var(--accent)">1 hora</div><p class="muted">Adiar não é falhar. É dar tempo para a vontade baixar.</p>';
+  } else if(emg.i===3){
+    body='<div class="opts" style="width:100%;text-align:left"><div class="opt">Levantar e beber um copo de água</div><div class="opt">Sair para uma caminhada curta</div><div class="opt">Mandar mensagem para alguém de confiança</div></div>';
+  } else {
+    body='<p class="muted">Você passou pelo momento mais difícil. Quer registrar o que aconteceu?</p>';
+  }
+  App.innerHTML='<main style="max-width:520px;margin:0 auto;padding:30px 20px;min-height:100%;display:flex;flex-direction:column;gap:20px">'+
+   '<button class="back" id="emgX">'+arrow()+'Fechar</button>'+
+   '<div class="stepdots">'+EMG_STEPS.map(function(_,k){return '<i class="'+(k<=emg.i?'on':'')+'"></i>';}).join('')+'</div>'+
+   '<div class="emg-step"><div class="eyebrow" style="margin:0">Passo '+(emg.i+1)+' de 5 · '+esc(st.k)+'</div>'+
+   '<h1 class="h-xl">'+esc(st.t)+'</h1><p class="muted">'+esc(st.d)+'</p>'+body+'</div>'+
+   '<div style="margin-top:auto;display:flex;flex-direction:column;gap:10px">'+
+     '<button class="btn btn-amber btn-full" id="emgNext">'+(emg.i<4?'Próximo passo':'Finalizar')+'</button>'+
+     (emg.i===0?'<p class="faint center" style="font-size:12px">Pode avançar quando sentir que a onda passou.</p>':'')+
+   '</div></main>';
+  document.getElementById('emgX').onclick=emgClose;
+  if(emg.i===0){
+    emg.left=120;var tEl=document.getElementById('emgTimer');
+    if(emg.timer)clearInterval(emg.timer);
+    emg.timer=setInterval(function(){emg.left--;var m=Math.floor(emg.left/60),s=emg.left%60;if(tEl)tEl.textContent=m+':'+(s<10?'0':'')+s;if(emg.left<=0){clearInterval(emg.timer);emg.timer=null;}},1000);
+  } else if(emg.timer){clearInterval(emg.timer);emg.timer=null;}
+  if(emg.i===1){ App.querySelectorAll('.chip').forEach(function(c){c.onclick=function(){emg.trigger=c.getAttribute('data-t');App.querySelectorAll('.chip').forEach(function(x){x.classList.remove('sel');});c.classList.add('sel');};}); }
+  document.getElementById('emgNext').onclick=function(){ if(emg.i<4){emg.i++;renderEmgStep();}else{renderEmgEnd();} };
+}
+function renderEmgEnd(){
+  if(emg.timer){clearInterval(emg.timer);emg.timer=null;}
+  track('EmergencyProtocolCompleted'); // não envia o gatilho (privado)
+  App.innerHTML='<main style="max-width:520px;margin:0 auto;padding:30px 20px;min-height:100%;display:flex;flex-direction:column;gap:20px">'+
+   '<div class="emg-step" style="margin-top:30px"><div style="width:64px;height:64px;border-radius:50%;background:var(--accent-soft);border:1px solid rgba(53,216,164,.3);display:grid;place-items:center;color:var(--accent)"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg></div>'+
+   '<h1 class="h-xl">Você não precisa tomar uma decisão definitiva agora.</h1>'+
+   '<p class="muted">Você passou pelos minutos mais difíceis. Isso é controle, não sorte.</p></div>'+
+   '<div style="margin-top:auto;display:flex;flex-direction:column;gap:10px">'+
+     '<button class="btn btn-primary btn-full" id="emgBack">Voltar para o desafio</button>'+
+     '<button class="btn btn-ghost btn-full" id="emgReg">Registrar o que aconteceu</button>'+
+   '</div></main>';
+  document.getElementById('emgBack').onclick=function(){go('home');};
+  document.getElementById('emgReg').onclick=function(){go('relapse');};
+}
+
+/* ---------- RELAPSE ---------- */
+var RELAPSE_Q=[
+  {k:'before',q:'O que aconteceu antes?',ph:'O que estava acontecendo momentos antes'},
+  {k:'trigger',q:'Qual foi o gatilho?',ph:'A situação ou emoção que disparou'},
+  {k:'feeling',q:'Como você estava se sentindo?',ph:'Com as suas palavras'},
+  {k:'different',q:'O que você faria diferente agora?',ph:'Um aprendizado para a próxima vez'}
+];
+function viewRelapse(){
+  var inner=
+   '<button class="back" id="relBack">'+arrow()+'Voltar</button>'+
+   '<div style="margin-top:12px"><div class="eyebrow">Sem julgamento</div><h1 class="h-xl">Vamos entender o que aconteceu.</h1><p class="muted" style="margin-top:10px">Isto não apaga o seu progresso. Registrar o que aconteceu transforma o episódio em informação a seu favor.</p></div>'+
+   RELAPSE_Q.map(function(q){return '<label class="field"><span>'+esc(q.q)+'</span><textarea class="input" data-k="'+q.k+'" placeholder="'+esc(q.ph)+'"></textarea></label>';}).join('')+
+   '<button class="btn btn-primary btn-full" id="relSave">Retomar meu Detox</button>'+
+   '<div class="callout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 0 0-7 7c0 3 2 5 2 8h10c0-3 2-5 2-8a7 7 0 0 0-7-7ZM9 21h6"/></svg><p>Se as recaídas estão frequentes ou pesadas, procurar ajuda é um sinal de força. <b>CVV 188</b>, Jogadores Anônimos e os CAPS oferecem apoio gratuito.</p></div>';
+  shell(inner,'home');
+  document.getElementById('relBack').onclick=function(){go('home');};
+  document.getElementById('relSave').onclick=function(){
+    var rec={at:new Date().toISOString()};
+    App.querySelectorAll('[data-k]').forEach(function(t){rec[t.getAttribute('data-k')]=t.value;});
+    Store.update(function(s){ s.relapses.push(rec); s.streak=0; }); // sequência reinicia; dias concluídos permanecem
+    track('RelapseRegistered'); // nunca envia o conteúdo
+    toast('Registrado. Seu progresso continua.');
+    go('home');
+  };
+}
+
+/* ---------- JOURNAL ---------- */
+function viewJournal(route){
+  var s=Store.getState();
+  var list=s.journal.slice().reverse();
+  var inner=
+   '<div><div class="eyebrow">Meu diário</div><h1 class="h-xl">Como foi o seu dia?</h1></div>'+
+   '<div class="card stack">'+
+     '<label class="field" style="margin:0"><span>Como estou me sentindo?</span><input class="input" id="jMood" placeholder="Em uma palavra ou frase"/></label>'+
+     '<label class="field" style="margin:0"><span>O que aconteceu?</span><textarea class="input" id="jWhat" placeholder="O que marcou o seu dia"></textarea></label>'+
+     '<label class="field" style="margin:0"><span>Tive vontade de apostar?</span><div class="opts" id="jUrge"><button class="opt radio" data-u="Não">Não</button><button class="opt radio" data-u="Um pouco">Um pouco</button><button class="opt radio" data-u="Muito">Muito</button></div></label>'+
+     '<label class="field" style="margin:0"><span>O que eu fiz?</span><textarea class="input" id="jDid" placeholder="Como você lidou com o dia"></textarea></label>'+
+     '<button class="btn btn-primary btn-full" id="jSave">Salvar entrada</button>'+
+   '</div>'+
+   '<p class="faint" style="font-size:12px;text-align:center">Suas anotações ficam só no seu aparelho e nunca são enviadas para análise.</p>'+
+   (list.length?'<div class="divider"></div><div class="eyebrow">Entradas anteriores</div>':'')+
+   '<div class="stack">'+list.map(function(e){
+      var dt=new Date(e.at);var ds=dt.toLocaleDateString('pt-BR')+' · '+dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+      return '<div class="entry"><div class="meta"><span>'+esc(ds)+'</span>'+(e.urge&&e.urge!=='Não'?'<span class="tag">vontade: '+esc(e.urge)+'</span>':'')+'</div>'+(e.mood?'<p style="color:var(--fg)">'+esc(e.mood)+'</p>':'')+(e.what?'<p>'+esc(e.what)+'</p>':'')+(e.did?'<p>'+esc(e.did)+'</p>':'')+'</div>';
+   }).join('')+'</div>';
+  shell(inner,route);
+  var urge='';
+  App.querySelectorAll('#jUrge .opt').forEach(function(b){b.onclick=function(){urge=b.getAttribute('data-u');App.querySelectorAll('#jUrge .opt').forEach(function(x){x.classList.remove('sel');});b.classList.add('sel');};});
+  document.getElementById('jSave').onclick=function(){
+    var mood=document.getElementById('jMood').value.trim();
+    var what=document.getElementById('jWhat').value.trim();
+    var did=document.getElementById('jDid').value.trim();
+    if(!mood&&!what&&!did){toast('Escreva algo para salvar');return;}
+    Store.update(function(st){st.journal.push({at:new Date().toISOString(),mood:mood,what:what,urge:urge,did:did});});
+    track('JournalEntryCreated'); // conteúdo nunca é enviado
+    toast('Entrada salva');
+    viewJournal(route);
+  };
+}
+
+/* ---------- TRIGGERS MAP ---------- */
+function viewTriggers(route){
+  var s=Store.getState();
+  // agrega gatilhos do onboarding + dia 1 + recaídas (tudo local/privado)
+  var counts={};
+  function add(t){if(!t)return;counts[t]=(counts[t]||0)+1;}
+  if(s.profile){ add(s.profile.mainTrigger); (s.profile.situations||[]).forEach(add); }
+  s.relapses.forEach(function(r){add(r.trigger);});
+  var arr=Object.keys(counts).map(function(k){return {k:k,v:counts[k]};}).sort(function(a,b){return b.v-a.v;});
+  var max=arr.length?arr[0].v:1;
+  var inner=
+   '<div><div class="eyebrow">Meus gatilhos</div><h1 class="h-xl">O que dispara a vontade</h1><p class="muted" style="margin-top:10px">Construído a partir do que você registrou. Quanto mais você usa o app, mais preciso fica.</p></div>'+
+   (arr.length?'<div class="card stack">'+arr.map(function(g){var pct=Math.round(g.v/max*100);return '<div><div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px"><span>'+esc(g.k)+'</span><span style="color:var(--accent);font-family:var(--font-display);font-weight:600">'+g.v+'x</span></div><div class="pbar"><i style="width:'+pct+'%"></i></div></div>';}).join('')+'</div>'+
+     '<div class="card card-2"><p style="font-size:14px">Seu gatilho mais forte agora: <b style="color:var(--accent)">'+esc(arr[0].k)+'</b>. Nos próximos dias, dê atenção extra às missões que falam sobre ele.</p></div>'
+     :'<div class="card center"><p class="muted">Seus gatilhos vão aparecer aqui conforme você avança no desafio e usa o protocolo de emergência.</p></div>')+
+   '<p class="faint" style="font-size:12px;text-align:center">Estes dados são privados e ficam só no seu aparelho.</p>';
+  shell(inner,route);
+}
+
+/* ---------- PROGRESS ---------- */
+function viewProgress(route){
+  var s=Store.getState();
+  var done=s.completedDays.length;
+  var relDays=[]; // marca dias de recaída aproximando por índice (ilustrativo: nenhum por padrão)
+  var cells='';
+  var cd=currentDay(s);
+  for(var d=1;d<=30;d++){
+    var cls=s.completedDays.indexOf(d)>=0?'done':(d===cd&&!isComplete(s)?'now':'');
+    cells+='<b class="'+cls+'">'+(d<10?'0'+d:d)+'</b>';
+  }
+  var ach=[
+    {n:1,label:'Primeiro dia'},{n:3,label:'3 dias'},{n:7,label:'7 dias'},
+    {n:14,label:'14 dias'},{n:21,label:'21 dias'},{n:30,label:'30 dias'}
+  ];
+  var star='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 18l-5.8 3 1.1-6.5L2.6 9.8l6.5-.9L12 3Z"/></svg>';
+  var inner=
+   '<div><div class="eyebrow">Meu progresso</div><h1 class="h-xl">Sua jornada até aqui</h1></div>'+
+   '<div class="grid2">'+
+     '<div class="card stat"><span class="lab">Dias concluídos</span><span class="val">'+done+'/30</span></div>'+
+     '<div class="card stat"><span class="lab">Sequência atual</span><span class="val">'+s.streak+(s.streak===1?' dia':' dias')+'</span></div>'+
+     '<div class="card stat"><span class="lab">Progresso</span><span class="val">'+progressPct(s)+'%</span></div>'+
+     '<div class="card stat"><span class="lab">Não apostado</span><span class="val money">'+brl(moneyNotBet(s))+'</span></div>'+
+   '</div>'+
+   '<div class="card"><div class="eyebrow">Calendário dos 30 dias</div><div class="cal">'+cells+'</div></div>'+
+   '<div class="card"><div class="eyebrow">Conquistas</div><div class="ach">'+ach.map(function(a){var on=done>=a.n;return '<div class="a '+(on?'on':'')+'"><div class="ic">'+star+'</div><b>'+a.label+'</b></div>';}).join('')+'</div></div>'+
+   (s.relapses.length?'<div class="card card-2"><div class="eyebrow">Registros</div><p class="muted" style="font-size:14px">Você registrou '+s.relapses.length+' recaída(s) — e seguiu em frente. Isso faz parte. Seus dias concluídos continuam contando.</p></div>':'');
+  shell(inner,route);
+}
+
+/* ---------- MATERIALS / KIT ---------- */
+function viewMaterials(route){
+  var mats=[
+    {t:'Guia dos 30 dias',d:'Como aproveitar cada fase e cada ferramenta.'},
+    {t:'Calendário',d:'Para imprimir e marcar cada dia concluído.'},
+    {t:'Mapa de gatilhos',d:'Folha-guia para mapear situações e emoções.'},
+    {t:'Diário',d:'Modelo de registro diário.'},
+    {t:'Planilha financeira',d:'Acompanhe o valor preservado por dia e semana.'},
+    {t:'Cartão de emergência',d:'Os 5 passos e os canais de apoio, para ter à mão.'},
+    {t:'Plano pós-30 dias',d:'Como manter o controle depois do desafio.'}
+  ];
+  var icon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>';
+  var inner=
+   '<div><div class="eyebrow">Kit Detox</div><h1 class="h-xl">Meus materiais</h1><p class="muted" style="margin-top:10px">Materiais de apoio para usar junto com o desafio. Novos arquivos aparecem aqui assim que publicados.</p></div>'+
+   '<div class="stack">'+mats.map(function(m){return '<div class="mat"><span class="ic">'+icon+'</span><div style="min-width:0"><b>'+esc(m.t)+'</b><small>'+esc(m.d)+'</small></div><span class="badge">Em breve</span></div>';}).join('')+'</div>';
+  shell(inner,route);
+}
+
+/* ===========================================================
+   ROUTER
+   =========================================================== */
+function render(){
+  var s=Store.getState();
+  var hash=(location.hash||'').replace(/^#/,'');
+  if(!hash) hash = s.onboarded ? 'home' : (s.purchased ? 'onboarding' : 'welcome');
+
+  // guardas de fluxo
+  if(hash!=='welcome' && hash!=='onboarding' && !s.onboarded){
+    // ainda não terminou onboarding → manda para o começo certo
+    hash = s.purchased ? 'onboarding' : 'welcome';
+    if((location.hash||'').replace(/^#/,'')!==hash){ location.replace('#'+hash); }
+  }
+
+  window.scrollTo(0,0);
+  if(hash==='welcome') return viewWelcome();
+  if(hash==='onboarding') return viewOnboarding();
+  if(hash==='home') return viewHome(hash);
+  if(hash.indexOf('day-')===0){ viewDay(hash); if(hash==='day-1') bindDay1(); return; }
+  if(hash==='emergency') return viewEmergency();
+  if(hash==='relapse') return viewRelapse();
+  if(hash==='journal') return viewJournal(hash);
+  if(hash==='triggers') return viewTriggers(hash);
+  if(hash==='progress') return viewProgress(hash);
+  if(hash==='materials') return viewMaterials(hash);
+  return viewHome('home');
+}
+window.addEventListener('hashchange',render);
+
+/* ---------- boot ---------- */
+(function(){
+  Pixel.load(CONFIG.metaPixelId);
+  track('PageView');
+  render();
+})();
+</script>
+</body>
+</html>
