@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Detox do Jogo — um desafio guiado de 30 dias para interromper o ciclo das apostas e retomar o controle da sua rotina e do seu dinheiro.">
+<meta name="description" content="Detox do Jogo — desafio guiado de 30 dias para interromper o ciclo das apostas e retomar o controle do seu dinheiro.">
 <meta property="og:title" content="Detox do Jogo — 30 dias">
-<meta property="og:description" content="Um desafio guiado para interromper o ciclo das apostas, um dia de cada vez.">
+<meta property="og:description" content="Não é falta de força de vontade. Comece vencendo só hoje.">
 <meta property="og:type" content="website">
 <title>Detox do Jogo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -238,10 +238,16 @@ a{color:inherit;text-decoration:none}
 .price .cur{font-family:var(--font-display);font-weight:600;font-size:20px;color:var(--muted)}
 .price .big{font-family:var(--font-display);font-weight:800;font-size:54px;letter-spacing:-.03em}
 .price-sub{color:var(--muted);font-size:14px;margin-bottom:22px}
-.incl{display:grid;gap:10px;margin-bottom:24px}
-.incl li{display:flex;gap:11px;align-items:center;font-size:15px;list-style:none}
+.incl{display:grid;gap:10px;margin-bottom:16px}
+.incl li{display:flex;gap:11px;align-items:center;font-size:14.5px;list-style:none}
+.incl li .txt{min-width:0}
+.incl li .val{margin-left:auto;color:var(--faint);font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums}
 .incl .ck{width:22px;height:22px;border-radius:7px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
 .incl .ck svg{width:13px;height:13px}
+.stack-total{display:flex;justify-content:space-between;align-items:baseline;border-top:1px dashed var(--line);padding-top:14px;margin-bottom:6px}
+.stack-total .k{color:var(--muted);font-size:14px}
+.stack-total .v{font-family:var(--font-display);font-weight:600;color:var(--muted);text-decoration:line-through;font-variant-numeric:tabular-nums}
+.stack-today{font-family:var(--font-display);font-weight:600;font-size:14px;color:var(--accent);margin-bottom:12px}
 .offer-foot{text-align:center;color:var(--faint);font-size:12.5px;margin-top:14px;display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center}
 .offer-foot span{display:inline-flex;align-items:center;gap:6px}
 .offer-foot svg{width:14px;height:14px;color:var(--accent)}
@@ -296,7 +302,7 @@ footer a:hover{color:var(--muted)}
 </head>
 <body>
 <!-- ===================== ANNOUNCEMENT ===================== -->
-<div class="announce"><div class="wrap">Um desafio guiado de <b>30 dias</b> para retomar o controle das apostas &middot; comece com um teste de 2 minutos</div></div>
+<div class="announce"><div class="wrap">Pare de alimentar o número que as apostas tiram de você &middot; <b>desafio de 30 dias</b>, um dia de cada vez</div></div>
 
 <!-- ===================== TOP BAR ===================== -->
 <header class="topbar"><div class="wrap">
@@ -307,12 +313,12 @@ footer a:hover{color:var(--muted)}
 <!-- ===================== HERO ===================== -->
 <section class="hero"><div class="wrap">
   <div>
-    <div class="eyebrow">App de 30 dias &middot; no celular</div>
-    <h1>Você não precisa decidir <span class="hl">nunca mais</span>. Comece pelos próximos 30 dias.</h1>
-    <p class="sub">O Detox do Jogo é um app de 30 dias que te ajuda a interromper o ciclo das apostas, entender seus gatilhos e retomar o controle do seu dinheiro e da sua rotina — uma missão simples por dia, direto no navegador do celular.</p>
+    <div class="eyebrow">Desafio guiado de 30 dias</div>
+    <h1>Não é falta de força de vontade. <span class="hl">"Nunca mais"</span> é grande demais — e é por isso que você recai.</h1>
+    <p class="sub">Some quanto as apostas já tiraram de você este ano — e trave esse número a partir de hoje. O Detox do Jogo troca a decisão impossível de parar pra sempre por uma que cabe em 24 horas: <b>hoje você não aposta</b>. Um app, uma missão por dia, direto no celular. Sem promessa de cura. Sem julgamento.</p>
     <div class="ctas">
       <a class="btn btn-primary" data-cta="hero_primary" href="#oferta">Começar meu Detox</a>
-      <a class="btn btn-ghost" data-cta="hero_calc" href="#calculadora">Calcular quanto posso deixar de apostar</a>
+      <a class="btn btn-ghost" data-cta="hero_calc" href="#calculadora">Calcular o que as apostas me custam</a>
     </div>
     <div class="trust">
       <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>Um passo por dia</span>
@@ -586,25 +592,26 @@ footer a:hover{color:var(--muted)}
 <section class="section offer" id="oferta"><div class="wrap">
   <div class="sec-head fade-up" style="text-align:center;margin-inline:auto">
     <div class="eyebrow">Sua oferta</div>
-    <h2>Seu Detox começa agora</h2>
+    <h2>Retome o controle a partir de hoje</h2>
   </div>
   <div class="offer-card fade-up">
-    <span class="offer-badge">Acesso imediato</span>
-    <div class="price"><span class="cur">R$</span><span class="big" id="priceBig">27,90</span></div>
+    <span class="offer-badge">Detox do Jogo — 30 dias</span>
+    <div class="price"><span class="cur">R$</span><span class="big" id="priceBig">39,99</span></div>
     <p class="price-sub" id="priceSub">Pagamento único &middot; menos do que muita gente aposta em um único dia.</p>
     <div class="chipline" style="margin-bottom:20px"><span class="chip-xs">Acesso imediato</span><span class="chip-xs">No navegador do celular</span><span class="chip-xs">Sem instalar nada</span><span class="chip-xs">Pagamento único</span></div>
     <div class="eyebrow" style="margin-bottom:12px">Você recebe hoje</div>
     <ul class="incl">
-      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg></span>30 dias de desafios guiados</li>
-      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg></span>Dashboard de progresso</li>
-      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg></span>Calculadora de dinheiro não apostado</li>
-      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg></span>Mapa de gatilhos</li>
-      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg></span>Protocolo de emergência</li>
-      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg></span>Diário</li>
-      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg></span>Plano anti-recaída</li>
-      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg></span>Kit Detox completo</li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg></span><span class="txt">App Detox do Jogo — 30 missões guiadas</span><span class="val">R$ 197</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg></span><span class="txt">Calculadora do Dinheiro Não Apostado</span><span class="val">R$ 47</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg></span><span class="txt">Mapa de Gatilhos pessoal</span><span class="val">R$ 67</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg></span><span class="txt">Protocolo de Emergência "Estou com vontade"</span><span class="val">R$ 97</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg></span><span class="txt">Diário + acompanhamento de progresso</span><span class="val">R$ 47</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg></span><span class="txt">Plano Anti-Recaída</span><span class="val">R$ 97</span></li>
+      <li><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg></span><span class="txt">Kit Detox — 7 materiais para imprimir</span><span class="val">R$ 167</span></li>
     </ul>
-    <button class="btn btn-primary btn-full" id="buyBtn" data-cta="offer">Começar meu Detox</button>
+    <div class="stack-total"><span class="k">Tudo isso vale</span><span class="v">R$ 719</span></div>
+    <div class="stack-today">Hoje, acesso completo por R$ 39,99 — pagamento único.</div>
+    <button class="btn btn-primary btn-full" id="buyBtn" data-cta="offer">Quero começar meu Detox hoje</button>
     <p class="faint" style="text-align:center;font-size:12.5px;margin-top:12px">Comece imediatamente após a confirmação do pagamento.</p>
     <div class="offer-foot">
       <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Pagamento seguro</span>
@@ -656,6 +663,7 @@ footer a:hover{color:var(--muted)}
 <!-- ===================== CTA FINAL ===================== -->
 <section class="section final"><div class="wrap">
   <h2>Você não precisa vencer os próximos dez anos. Só <span class="hl">hoje</span>.</h2>
+  <p style="max-width:48ch;margin-inline:auto">Em 30 dias você vai saber, em reais, quanto deixou de apostar — e ter um plano para continuar. Um dia de cada vez.</p>
   <p>E hoje é possível.</p>
   <a class="btn btn-primary" data-cta="final" href="#oferta">Começar meu Detox</a>
 </div></section>
@@ -681,11 +689,11 @@ footer a:hover{color:var(--muted)}
 /* ---------- CONFIGURAÇÃO CENTRAL ---------- */
 /* Um único lugar para preço, URLs e Pixel — sem hardcode espalhado. */
 var CONFIG = {
-  price: '27,90',                 // '19,90' | '27,90' | '29,90'
-  priceSubtitle: 'Pagamento único · menos do que muita gente aposta em um único dia.',
-  LANDING_URL: '',                // ex.: https://seudominio.com.br
-  APP_URL: '',                    // ex.: https://app.seudominio.com.br (destino pós-compra)
-  CHECKOUT_URL: '',               // URL do checkout da Cakto (cole aqui)
+  price: '39,99',                 // '19,90' | '27,90' | '29,90' | '39,99'
+  priceSubtitle: 'Pagamento único · acesso imediato · garantia de 7 dias.',
+  LANDING_URL: 'https://detox-do-jogo.vercel.app',
+  APP_URL: 'https://detox-do-jogo.vercel.app/app',   // destino pós-compra (#welcome)
+  CHECKOUT_URL: 'https://pay.cakto.com.br/79g5kjy_1162574', // checkout Cakto (front R$39,99)
   metaPixelId: ''                 // Meta Pixel ID (NEXT_PUBLIC_META_PIXEL_ID)
 };
 /* compat: o código usa CONFIG.checkoutUrl */
