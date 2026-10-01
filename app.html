@@ -849,18 +849,20 @@ function viewProgress(route){
 /* ---------- MATERIALS / KIT ---------- */
 function viewMaterials(route){
   var mats=[
-    {t:'Guia dos 30 dias',d:'Como aproveitar cada fase e cada ferramenta.'},
-    {t:'Calendário',d:'Para imprimir e marcar cada dia concluído.'},
-    {t:'Mapa de gatilhos',d:'Folha-guia para mapear situações e emoções.'},
-    {t:'Diário',d:'Modelo de registro diário.'},
-    {t:'Planilha financeira',d:'Acompanhe o valor preservado por dia e semana.'},
-    {t:'Cartão de emergência',d:'Os 5 passos e os canais de apoio, para ter à mão.'},
-    {t:'Plano pós-30 dias',d:'Como manter o controle depois do desafio.'}
+    {t:'Guia dos 30 dias',d:'Como aproveitar cada fase e cada ferramenta.',f:'01-guia-30-dias.pdf'},
+    {t:'Calendário de 30 dias',d:'Para imprimir e marcar cada dia concluído.',f:'02-calendario-30-dias.pdf'},
+    {t:'Mapa de gatilhos',d:'Folha-guia para mapear situações e emoções.',f:'03-mapa-de-gatilhos.pdf'},
+    {t:'Diário',d:'Modelo de registro diário para imprimir.',f:'04-diario.pdf'},
+    {t:'Planilha financeira',d:'Acompanhe o valor preservado por dia e semana.',f:'05-planilha-dinheiro.pdf'},
+    {t:'Cartão de emergência',d:'Os 5 passos e os canais de apoio, para recortar.',f:'06-cartao-de-emergencia.pdf'},
+    {t:'Plano pós-30 dias',d:'Como manter o controle depois do desafio.',f:'07-plano-pos-30-dias.pdf'}
   ];
   var icon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>';
+  var dl='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M4 21h16"/></svg>';
   var inner=
-   '<div><div class="eyebrow">Kit Detox</div><h1 class="h-xl">Meus materiais</h1><p class="muted" style="margin-top:10px">Materiais de apoio para usar junto com o desafio. Novos arquivos aparecem aqui assim que publicados.</p></div>'+
-   '<div class="stack">'+mats.map(function(m){return '<div class="mat"><span class="ic">'+icon+'</span><div style="min-width:0"><b>'+esc(m.t)+'</b><small>'+esc(m.d)+'</small></div><span class="badge">Em breve</span></div>';}).join('')+'</div>';
+   '<div><div class="eyebrow">Kit Detox</div><h1 class="h-xl">Meus materiais</h1><p class="muted" style="margin-top:10px">7 materiais para imprimir e usar junto com o desafio. Toque para abrir ou baixar o PDF.</p></div>'+
+   '<div class="stack">'+mats.map(function(m){return '<a class="mat" href="'+m.f+'" target="_blank" rel="noopener" style="color:var(--fg)" onclick="track(\'MaterialOpen\')"><span class="ic">'+icon+'</span><div style="min-width:0"><b>'+esc(m.t)+'</b><small>'+esc(m.d)+'</small></div><span class="badge" style="display:inline-flex;align-items:center;gap:5px;color:var(--accent)">'+dl+'PDF</span></a>';}).join('')+'</div>'+
+   '<p class="faint" style="font-size:12px;text-align:center;margin-top:4px">Materiais imprimíveis. Para preencher no papel ou salvar no celular.</p>';
   shell(inner,route);
 }
 
