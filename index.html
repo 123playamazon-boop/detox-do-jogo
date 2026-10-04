@@ -906,5 +906,16 @@ function appendUTMs(url){
 })();
 </script>
 <script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','2060375741236309');fbq('track','PageView');document.addEventListener('click',function(e){var t=e.target.closest?e.target.closest('button,a'):null;if(t&&/detox hoje|comecar|começar|comprar|quero/i.test(t.textContent||'')){try{fbq('track','InitiateCheckout');}catch(x){}}},true);</script>
-</script></body>
+</script>
+<style>
+#stkbar{display:none}
+@media(max-width:760px){
+#stkbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#0f1f1a;border-top:1px solid rgba(255,255,255,.12);box-shadow:0 -6px 20px rgba(0,0,0,.45);padding:9px 12px calc(9px + env(safe-area-inset-bottom));gap:10px;align-items:center;font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif}
+#stkbar .n{color:#fff;font-weight:900;font-size:19px;flex:none}
+#stkbar a{flex:1;background:#16a34a;color:#fff;text-decoration:none;font-weight:800;text-align:center;padding:13px 8px;border-radius:12px;font-size:15px}
+body{padding-bottom:84px}
+}
+</style>
+<div id="stkbar"><span class="n">R$ 39,99</span><a href="https://pay.cakto.com.br/79g5kjy_1162574" onclick="try{fbq('track','InitiateCheckout')}catch(e){}">Começar meu Detox →</a></div>
+</body>
 </html>
